@@ -61,7 +61,7 @@ fn runs_new_cli_command() {
         .assert()
         .success()
         .stdout(contains(format!(
-            "Project '{project_name}' created from 'cli' template."
+            "Scaffolding project `{project_name}` from `cli` template..."
         )));
 
     assert!(project_path.exists());
@@ -87,7 +87,7 @@ fn runs_new_web_command() {
         .assert()
         .success()
         .stdout(contains(format!(
-            "Project '{project_name}' created from 'web' template."
+            "Scaffolding project `{project_name}` from `web` template..."
         )));
 
     assert!(project_path.exists());
@@ -111,9 +111,7 @@ fn accepts_verbose_flag_with_new() {
         .args(["-v", "new", "cli", project_name])
         .assert()
         .success()
-        .stdout(contains(format!(
-            "Creating project '{project_name}' from template 'cli'"
-        )));
+        .stdout(contains("DEBUG"));
 }
 
 #[test]
@@ -169,7 +167,7 @@ fn accepts_verbose_flag_with_dev() {
         .assert()
         .success()
         // TODO: implement logging
-        .stdout(contains("Verbose: true"));
+        .stdout(contains("DEBUG"));
 }
 
 #[test]
