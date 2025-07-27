@@ -1,10 +1,16 @@
 mod cli;
 mod commands;
 mod context;
+mod utils;
 
 use clap::Parser;
 use cli::Cli;
 use context::AppContext;
+use rust_embed::RustEmbed;
+
+#[derive(RustEmbed)]
+#[folder = "templates/"]
+struct Templates;
 
 fn main() {
     let cli = Cli::parse();
@@ -14,7 +20,7 @@ fn main() {
     };
 
     match &cli.command {
-        cli::Commands::New { name } => commands::new::handle(&ctx, name),
+        cli::Commands::New { template, name } => commands::new::handle(&ctx, template, name),
         cli::Commands::Dev => commands::dev::handle(&ctx),
     };
 }

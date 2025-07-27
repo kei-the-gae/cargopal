@@ -16,6 +16,9 @@ pub struct Cli {
 pub enum Commands {
     /// Create a new project
     New {
+        /// Template to use
+        template: String,
+
         /// Project name
         name: String,
     },
