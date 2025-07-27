@@ -126,6 +126,7 @@ dependencies = [
  "handlebars",
  "predicates",
  "rust-embed",
+ "serde",
  "tempfile",
  "toml",
  "tracing",

@@ -28,7 +28,9 @@ fn main() -> Result<()> {
 
     tracing_subscriber::fmt().with_env_filter(filter).init();
 
-    let ctx = AppContext {};
+    let ctx = AppContext {
+        verbose: cli.verbose,
+    };
 
     match &cli.command {
         cli::Commands::New { template, name } => commands::new::handle(&ctx, template, name),
