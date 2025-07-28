@@ -1,17 +1,24 @@
-use std::{
-    fs,
-    process::{Command, Stdio},
-};
-
 use anyhow::{bail, Result};
+use duct::{cmd, Handle};
+use notify::{RecursiveMode, Watcher};
 use serde::Deserialize;
-use tracing::info;
+use std::{fs, path::Path, sync::mpsc::channel, time::Duration};
+use tracing::{debug, info};
 
 use crate::context::AppContext;
 
 #[derive(Debug, Deserialize)]
 struct CargopalConfig {
     template: String,
+}
+
+fn run_server(ctx: &AppContext) -> Result<Handle> {
+    let mut run_args = vec!["run"];
+    if ctx.verbose {
+        run_args.push("--verbose");
+    }
+    let handle = cmd("cargo", run_args).start()?;
+    Ok(handle)
 }
 
 pub fn handle(ctx: &AppContext) -> Result<()> {
@@ -32,25 +39,31 @@ pub fn handle(ctx: &AppContext) -> Result<()> {
         );
     }
 
+    let (tx, rx) = channel();
+
+    let mut watcher = notify::recommended_watcher(tx)?;
+    watcher.watch(Path::new("./src"), RecursiveMode::Recursive)?;
+
     info!("Starting dev server...");
+    let mut child = run_server(ctx)?;
 
-    let mut cmd = Command::new("cargo");
-    cmd.arg("run");
-
-    if ctx.verbose {
-        cmd.arg("--verbose");
+    loop {
+        match rx.recv_timeout(Duration::from_secs(1)) {
+            Ok(event) => {
+                debug!("File change detected: {:?}", event);
+                info!("Restarting server...");
+                if let Err(e) = child.kill() {
+                    debug!("Failed to kill process: {}", e);
+                }
+                child = run_server(ctx)?;
+            }
+            Err(_) => {
+                // timeout, check if process is still running
+                if child.try_wait()?.is_some() {
+                    info!("Server process exited. Restarting...");
+                    child = run_server(ctx)?;
+                }
+            }
+        }
     }
-
-    let mut child = cmd
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .spawn()?;
-
-    let status = child.wait()?;
-
-    if !status.success() {
-        bail!("Dev server failed with status: {}", status);
-    }
-
-    Ok(())
 }
