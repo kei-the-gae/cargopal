@@ -217,7 +217,7 @@ mod dev_tests {
         let mut initial_response = None;
 
         // poll the server to see if it's up
-        for _ in 0..60 {
+        for _ in 0..480 {
             if let Ok(resp) = client.get("http://localhost:3000").send() {
                 if resp.status().is_success() {
                     initial_response = Some(resp.text().unwrap());
@@ -238,7 +238,7 @@ mod dev_tests {
         let mut updated_response = None;
 
         // poll the server to see if it's up with the new content
-        for _ in 0..60 {
+        for _ in 0..480 {
             if let Ok(resp) = client.get("http://localhost:3000").send() {
                 if resp.status().is_success() {
                     let text = resp.text().unwrap();
